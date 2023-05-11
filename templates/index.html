@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Snippet Manager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar {
+            background-color: #f8f8f8;
+            padding: 10px;
+        }
+
+        .navbar button {
+            margin-right: 10px;
+        }
+
+        .editor {
+            width: 100%;
+            height: calc(100vh - 50px);
+            padding: 10px;
+            font-size: 16px;
+            resize: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <button form="save-form" type="submit">Save</button>
+        <form id="save-form" method="POST" action="/save">
+            <select name="duration">
+                {% for option, value in duration_options.items() %}
+                    <option value="{{ value }}">{{ option }}</option>
+                {% endfor %}
+            </select>
+            <input type="hidden" name="snippet" id="snippet-input">
+        </form>
+    </div>
+
+    <textarea class="editor" id="snippet-textarea" rows="10"></textarea>
+
+    <script>
+        document.getElementById("snippet-textarea").addEventListener("input", function() {
+            document.getElementById("snippet-input").value = this.value;
+        });
+    </script>
+</body>
+</html>
