@@ -4,10 +4,19 @@
     <title>Snippet</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/styles/default.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bad-words/3.0.3/badwords.min.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var codeElement = document.querySelector("code");
+            var filter = new BadWordsFilter();
+            var censoredText = filter.clean(codeElement.textContent);
+            codeElement.textContent = censoredText;
+        });
+    </script>
 </head>
 <body>
     <h1>Snippet</h1>
-    <pre><code>{{ snippet }}</code></pre>
+    <pre><code>{{ snippet }}<code></pre>
 </body>
 </html>
