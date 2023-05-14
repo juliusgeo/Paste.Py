@@ -55,7 +55,7 @@ async def get_snippet(url):
             conn.commit()
             return "Snippet has expired!"
         snippet = snippet_data['snippet']
-        return await render_template('snippet.html', snippet=snippet)
+        return await render_template('snippet2.html', snippet=snippet)
     else:
         return "Snippet not found!"
 
