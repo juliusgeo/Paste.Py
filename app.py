@@ -2,6 +2,10 @@ from quart import Quart, render_template, request, redirect
 import random
 import string
 import time
+import sqlite3
+import bleach
+
+conn = sqlite3.connect('snippets.db')
 
 app = Quart(__name__)
 snippets = {}
@@ -31,21 +35,24 @@ async def home():
 async def save_snippet():
     form = await request.form
     snippet = form['snippet']
+    snippet = bleach.clean(snippet)  # sanitize user input
     duration = int(form.get('duration', 0))
     url = generate_url()
     expiration_time = time.time() + duration
-    snippets[url] = {
-        'snippet': snippet,
-        'expires_at': expiration_time
-    }
+    conn.execute("INSERT INTO snippets (url, snippet, expires_at) VALUES (?, ?, ?)", (url, snippet, expiration_time))
+    conn.commit()
     return redirect('/snippet/' + url)
+
 
 @app.route('/snippet/<url>')
 async def get_snippet(url):
-    if url in snippets:
-        snippet_data = snippets[url]
-        if 'expires_at' in snippet_data and time.time() > snippet_data['expires_at']:
-            del snippets[url]
+    cursor = conn.execute("SELECT snippet, expires_at FROM snippets WHERE url = ?", (url,))
+    row = cursor.fetchone()
+    if row is not None:
+        snippet_data = {'snippet': row[0], 'expires_at': row[1]}
+        if time.time() > snippet_data['expires_at']:
+            conn.execute("DELETE FROM snippets WHERE url = ?", (url,))
+            conn.commit()
             return "Snippet has expired!"
         snippet = snippet_data['snippet']
         return await render_template('snippet.html', snippet=snippet)
@@ -53,4 +60,11 @@ async def get_snippet(url):
         return "Snippet not found!"
 
 if __name__ == '__main__':
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS snippets
+        (url TEXT PRIMARY KEY,
+        snippet TEXT NOT NULL,
+        expires_at REAL NOT NULL);
+    ''')
+
     app.run(debug=True)
