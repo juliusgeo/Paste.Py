@@ -1,10 +1,14 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>🐍✂️ PastePy</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.3/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.3/theme/dracula.min.css">
 </head>
+
 <body>
     <div class="navbar">
         <button form="save-form" type="submit"><i class="fas fa-save"></i></button>
@@ -14,13 +18,15 @@
                     <option value="{{ value }}">{{ option }}</option>
                 {% endfor %}
             </select>
+            <input type="text" id="snippetName" name="snippetName" placeholder="Snippet Name">
             <input type="hidden" name="snippet" id="snippet-input">
         </form>
         <span class="navbar-title">🐍✂️ Editor</span>
     </div>
+    <!-- don't remove: CodeMirror masks this -->
+    <textarea id="editor" style="visibility: hidden"></textarea>
 
-    <textarea class="editor" id="snippet-textarea" rows="10" placeholder="Enter your snippet here..."></textarea>
-
+    <!-- Error -->
     <div class="error-popup" id="error-popup" style="display: none;">
         <div class="error-popup-content">
             <i class="fas fa-times"></i>
@@ -33,29 +39,51 @@
     </footer>
 
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    <script>
-        document.getElementById("snippet-textarea").addEventListener("input", function() {
-            document.getElementById("snippet-input").value = this.value;
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.3/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.3/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.3/addon/selection/active-line.min.js"></script>
+
+<script>
+    var editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
+        lineNumbers: true,
+        theme: "dracula",
+        mode: "python",
+        styleActiveLine: true
+    });
+
+    editor.on("change", function() {
+        document.getElementById("snippet-input").value = editor.getValue();
+    });
+
+    document.getElementById('save-form').addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        const response = await fetch('/save', {
+            method: 'POST',
+            body: new FormData(this)
         });
 
-        document.getElementById("save-form").addEventListener("submit", async function(event) {
-            const snippet = document.getElementById("snippet-textarea").value.trim();
-            if (snippet === "") {
-                event.preventDefault(); // Prevent form submission
-                const errorMessage = "Snippet must contain some text!";
-                showErrorPopup(errorMessage);
-            }
-        });
-
-        function showErrorPopup(errorMessage) {
-            const errorPopup = document.getElementById("error-popup");
-            const errorMessageElement = document.getElementById("error-message");
-            errorMessageElement.textContent = errorMessage;
-            errorPopup.style.display = "flex";
-            setTimeout(function() {
-                errorPopup.style.display = "none";
-            }, 2000);
+        if (response.redirected) {
+            // Redirect to the snippet page
+            window.location.href = response.url;
+        } else {
+            // Handle error response
+            const responseData = await response.json();
+            const { error } = responseData;
+            showErrorPopup(error);
         }
-    </script>
+    });
+
+    function showErrorPopup(errorMessage) {
+        var errorPopup = document.getElementById("error-popup");
+        var errorMessageElement = document.getElementById("error-message");
+        errorMessageElement.textContent = errorMessage;
+        errorPopup.style.display = "flex";
+        setTimeout(function() {
+            errorPopup.style.display = "none";
+        }, 2000);
+    }
+</script>
+
 </body>
 </html>
