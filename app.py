@@ -10,16 +10,17 @@ conn = sqlite3.connect('snippets.db')
 app = Quart(__name__)
 snippets = {}
 
+# "precomputed" durations in seconds. 5 minutes = 5 * 60 etc.
 DURATION_OPTIONS = {
-    '5 minutes': 5 * 60,
-    '10 minutes': 10 * 60,
-    '30 minutes': 30 * 60,
-    '1 hour': 60 * 60,
-    '2 hours': 2 * 60 * 60,
-    '5 hours': 5 * 60 * 60,
-    '12 hours': 12 * 60 * 60,
-    '24 hours': 24 * 60 * 60,
-    '1 week': 7 * 24 * 60 * 60
+    '5 minutes': 300,
+    '10 minutes': 600,
+    '30 minutes': 1800,
+    '1 hour': 3600,
+    '2 hours': 7200,
+    '5 hours': 18000,
+    '12 hours': 43200,
+    '24 hours': 86400,
+    '1 week': 604800
 }
 
 def generate_url():
@@ -49,9 +50,13 @@ async def save_snippet():
         error_message = 'The Snippet\'s content must not be empty!'
         return jsonify({'error': error_message})
 
-    conn.execute("INSERT INTO snippets (url, snippet, snippet_name, expires_at) VALUES (?, ?, ?, ?)",
+    try:
+        conn.execute("INSERT INTO snippets (url, snippet, snippet_name, expires_at) VALUES (?, ?, ?, ?)",
                  (url, snippet, snippet_name, expiration_time))
-    conn.commit()
+        conn.commit()
+    except sqlite3.OperationalError as e:
+        print(f"{e}\nCould not find \"snippets.db\"")
+        return jsonify({'error': 'Internal Error: Database not found. Possible causes: Database is deleted or renamed.'})
     return redirect(f'/snippet/{url}')
 
 
