@@ -68,7 +68,7 @@ async def get_snippet(url):
             return "Snippet has expired!"
         snippet = snippet_data['snippet']
         snippet_name = snippet_data['snippet_name']
-        return await render_template('snippet2.html', snippet=snippet, snippet_name=snippet_name)
+        return await render_template('snippet.html', snippet=snippet, snippet_name=snippet_name)
     else:
         return "Snippet not found!"
 
