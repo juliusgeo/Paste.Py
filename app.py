@@ -72,7 +72,6 @@ async def save_snippet():
     snippet_name = form['snippetName']
     duration = int(form.get('duration', 0))
     url = generate_url()
-    print(url)
     if duration == -1:
         expiration_time = -1
     else:
