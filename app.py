@@ -55,7 +55,7 @@ def generate_url():
 
 @app.route('/')
 async def home():
-    return await render_template('index.html', duration_options=DURATION_OPTIONS)
+    return await render_template('index.html', duration_options=DURATION_OPTIONS, allowed_extensions=allowed_extensions)
 
 
 @app.route('/save', methods=['POST'])
@@ -105,22 +105,6 @@ async def get_snippet(url):
     return await render_template('snippet.html', snippet=snippet, snippet_name=snippet_name)
   else:
     return "Snippet not found!"
-
-@app.route('/upload', methods=['POST'])
-async def upload_file():
-
-    if 'file' not in await request.files:
-        return jsonify({'error': 'No file part in the request.'})
-    file = (await request.files)['file']
-
-    if file.filename == '':
-        return jsonify({'error': 'No selected file.'})
-    if file and allowed_file(file.filename):
-        content = await file.read()
-        return jsonify({'content': content.decode('utf-8')})
-    else:
-        return jsonify({'error': 'Invalid file type.'})
-
 
 if __name__ == '__main__':
     conn.execute('''  
