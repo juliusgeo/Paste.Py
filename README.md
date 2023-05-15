@@ -15,7 +15,7 @@
 ## 🌟 Features
 - 💾 Create and share code snippets easily with URLS.
 - 📋 Live syntax highlighting.
-- ⏱ Configurable deletion times.
+- ⏱  Configurable deletion times.
 - 🔒 Password-protected snippets.
 - 📥 Import code snippets from files.
 - 📤 Export code snippets to files.

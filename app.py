@@ -1,16 +1,19 @@
 import os
 
 from quart import Quart, render_template, request, redirect, jsonify
-import random
+from uuid import uuid4
 import string
 import time
 import sqlite3
 import bleach
-
+from itertools import combinations_with_replacement
+from random import choice
 conn = sqlite3.connect('snippets.db')
 
 app = Quart(__name__)
 snippets = {}
+
+URL_LEN = 10
 
 # "precomputed" durations in seconds. 5 minutes = 5 * 60 etc.
 DURATION_OPTIONS = {
@@ -48,10 +51,13 @@ def allowed_file(filename):
     else:
         return False
 
+
+CHAR_COMBOS = tuple([''.join(i) for i in combinations_with_replacement(set(string.ascii_lowercase + string.digits), 5)])
+
+
 def generate_url():
     # Generates a random URL consisting of lowercase letters and digits
-    characters = string.ascii_lowercase + string.digits
-    return ''.join(random.choice(characters) for _ in range(6))
+    return ''.join(uuid4().hex+choice(CHAR_COMBOS))
 
 @app.route('/')
 async def home():
@@ -66,6 +72,7 @@ async def save_snippet():
     snippet_name = form['snippetName']
     duration = int(form.get('duration', 0))
     url = generate_url()
+    print(url)
     if duration == -1:
         expiration_time = -1
     else:
