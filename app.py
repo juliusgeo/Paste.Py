@@ -1,3 +1,5 @@
+import os
+
 from quart import Quart, render_template, request, redirect, jsonify
 import random
 import string
@@ -23,6 +25,28 @@ DURATION_OPTIONS = {
     '24 hours': 86400,
     '1 week': 604800
 }
+
+allowed_extensions = [
+    'txt', 'json', 'xml', 'yaml', 'yml', 'csv', 'conf', 'cfg', 'ini', 'log',
+    'bat', 'cmd', 'sh', 'bash', 'ps1', 'psm1', 'psd1', 'r', 'py', 'pl', 'rb', 'java',
+    'class', 'm', 'swift', 'go', 'scala', 'kt', 'kts', 'rs', 'lua', 'tcl', 'groovy',
+    'gradle', 'php', 'php3', 'php4', 'php5', 'php7', 'phtml', 'html', 'htm', 'xhtml', 'jhtml',
+    'md', 'markdown', 'rst', 'css', 'scss', 'sass', 'less', 'js', 'jsx', 'ts', 'tsx',
+    'c', 'h', 'cpp', 'hpp', 'cxx', 'hxx', 'cc', 'hh', 'cs', 'vb',
+    'sql', 'asm', 's', 'pas', 'f', 'for', 'f90', 'f95', 'f03', 'f08', 'f15', 'f18',
+    'd', 'ada', 'nim', 'y', 'l', 'clj', 'cljs', 'cljc', 'edn', 'coffee', 'litcoffee', 'dart',
+    'elm', 'haskell', 'hs', 'lhs', 'purs', 'perl', 'raku', 'rakumod', 'rakutest', '6pl', '6pm', 'nqp',
+    'p6', 'p6l', 'p6m', 'pl6', 'pm6', 'php', 'php3', 'php4', 'php5', 'php7', 'phtml',
+    'jl', 'matlab', 'm', 'octave', 'scilab', 'sce', 'sci', 'sage', 'wl', 'wls', 'nb'
+]
+
+def allowed_file(filename):
+    filename, file_extension = os.path.splitext(filename)
+
+    if file_extension in allowed_extensions:
+        return True
+    else:
+        return False
 
 def generate_url():
     # Generates a random URL consisting of lowercase letters and digits
@@ -84,17 +108,18 @@ async def get_snippet(url):
 
 @app.route('/upload', methods=['POST'])
 async def upload_file():
-    # check if the post request has the file part
+
     if 'file' not in await request.files:
         return jsonify({'error': 'No file part in the request.'})
     file = (await request.files)['file']
-    # if user does not select file, browser also
-    # submit an empty part without filename
+
     if file.filename == '':
         return jsonify({'error': 'No selected file.'})
-    if file:
+    if file and allowed_file(file.filename):
         content = await file.read()
         return jsonify({'content': content.decode('utf-8')})
+    else:
+        return jsonify({'error': 'Invalid file type.'})
 
 
 if __name__ == '__main__':
