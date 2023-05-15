@@ -87,4 +87,4 @@ if __name__ == '__main__':
     expires_at REAL NOT NULL);  
     ''')
 
-    app.run(debug=True)
+    app.run(debug=False)
