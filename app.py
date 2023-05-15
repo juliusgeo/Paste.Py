@@ -82,6 +82,20 @@ async def get_snippet(url):
   else:
     return "Snippet not found!"
 
+@app.route('/upload', methods=['POST'])
+async def upload_file():
+    # check if the post request has the file part
+    if 'file' not in await request.files:
+        return jsonify({'error': 'No file part in the request.'})
+    file = (await request.files)['file']
+    # if user does not select file, browser also
+    # submit an empty part without filename
+    if file.filename == '':
+        return jsonify({'error': 'No selected file.'})
+    if file:
+        content = await file.read()
+        return jsonify({'content': content.decode('utf-8')})
+
 
 if __name__ == '__main__':
     conn.execute('''  
